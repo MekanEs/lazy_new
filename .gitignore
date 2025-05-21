@@ -13,10 +13,10 @@ dist
 dist-ssr
 coverage
 *.local
-
+.netlify
 /cypress/videos/
 /cypress/screenshots/
-
+dist
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

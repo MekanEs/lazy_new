@@ -5,19 +5,18 @@
     <input v-model="password" type="password" placeholder="Password" @keyup.enter="login"/>
     <button @click="login">Login</button>
     <p v-if="error" style="color:red">{{ error }}</p>
-  </div>
-  <div v-else>
-    <!-- Отображаем исходное содержимое App.vue здесь -->
+</div>
+<div v-else>
     <MenuVue />
     <RouterView />
-    <button @click="logout">Logout</button>
+    <button style="position: absolute; right: 12px; top: 12px;" @click="logout">Logout</button>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import MenuVue from "./Menu/Menu.vue"; // Импортируем MenuVue
-import { RouterView } from "vue-router"; // Импортируем RouterView
+import MenuVue from "./Menu/Menu.vue"; 
+import { RouterView } from "vue-router"; 
 
 const username = ref('');
 const password = ref('');
@@ -39,43 +38,53 @@ async function login() {
     if (res.ok && data.success) {
       loggedIn.value = true;
       localStorage.setItem('loggedIn', 'true');
-      // Опционально: сохранить имя пользователя, если это необходимо
-      // localStorage.setItem('username', username.value);
+      localStorage.setItem('username', username.value); 
+      localStorage.setItem('password', password.value); 
     } else {
       error.value = data.message || 'Invalid credentials';
       loggedIn.value = false;
       localStorage.removeItem('loggedIn');
+      localStorage.removeItem('username'); 
+      localStorage.removeItem('password'); 
     }
   } catch (e) {
     console.error('Login error:', e);
     error.value = 'Failed to connect to the server. Please try again later.';
     loggedIn.value = false;
     localStorage.removeItem('loggedIn');
+    localStorage.removeItem('username'); 
+    localStorage.removeItem('password'); 
   }
 }
 
 function logout() {
   localStorage.removeItem('loggedIn');
-  // localStorage.removeItem('username'); // Если сохраняли имя пользователя
+  localStorage.removeItem('username'); 
+  localStorage.removeItem('password'); 
   loggedIn.value = false;
-  username.value = ''; // Очищаем поля
+  username.value = ''; 
   password.value = '';
 }
 
-onMounted(() => {
-  if (localStorage.getItem('loggedIn') === 'true') {
-    // Если пользователь уже вошел (например, обновил страницу),
-    // можно попытаться подтвердить сессию с сервером или просто установить loggedIn = true.
-    // Для простоты, просто устанавливаем loggedIn = true.
-    // В более сложном приложении здесь может быть проверка токена.
-    loggedIn.value = true;
+onMounted(async () => { // Делаем функцию асинхронной
+  const wasLoggedIn = localStorage.getItem('loggedIn') === 'true';
+
+  if (wasLoggedIn) {
+    const storedUser = localStorage.getItem('username');
+    const storedPass = localStorage.getItem('password');
+
+    if (storedUser && storedPass) {
+      username.value = storedUser; 
+      password.value = storedPass;
+      await login();
+    } else {
+      localStorage.removeItem('loggedIn');
+    }
   }
 });
 </script>
 
 <style scoped>
-/* Стили для компонента Login.vue */
-/* Можно скопировать или адаптировать существующие стили, если нужно */
 div {
   display: flex;
   flex-direction: column;
